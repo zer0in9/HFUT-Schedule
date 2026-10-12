@@ -21,7 +21,7 @@ xcodebuild archive -project HFUTSchedule.xcodeproj -scheme HFUTSchedule \
 app="$archive/Products/Applications/HFUTSchedule.app"
 test -d "$app"
 # Verify real device architecture before packaging; simulator apps are not IPA payloads.
-xcrun lipo -verify_arch arm64 "$app/HFUTSchedule"
+xcrun lipo "$app/HFUTSchedule" -verify_arch arm64
 staging="$(mktemp -d "$output/ipa.XXXXXX")"
 trap 'rm -rf "$staging"' EXIT
 mkdir "$staging/Payload"
