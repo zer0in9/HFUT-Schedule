@@ -4,10 +4,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.window.ComposeUIViewController
 import com.hfut.schedule.shared.ScheduleRepository
 import com.hfut.schedule.shared.ScheduleStorage
+import com.hfut.schedule.shared.currentLocalDate
 import kotlinx.coroutines.delay
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
 import platform.Foundation.NSURL
 import platform.Foundation.NSUserDefaults
 import platform.UIKit.UIApplication
@@ -21,10 +19,10 @@ private class IOSScheduleStorage : ScheduleStorage {
 
 fun MainViewController() = ComposeUIViewController {
     val repository = remember { ScheduleRepository(IOSScheduleStorage()) }
-    var today by remember { mutableStateOf(Clock.System.todayIn(TimeZone.currentSystemDefault())) }
+    var today by remember { mutableStateOf(currentLocalDate()) }
     LaunchedEffect(Unit) {
         while (true) {
-            today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            today = currentLocalDate()
             delay(60_000)
         }
     }

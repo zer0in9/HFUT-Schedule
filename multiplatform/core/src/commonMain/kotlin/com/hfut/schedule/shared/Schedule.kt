@@ -2,14 +2,21 @@ package com.hfut.schedule.shared
 
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 const val MAX_WEEKS = 30
 const val MAX_PERIODS = 12
+
+@OptIn(ExperimentalTime::class)
+fun currentLocalDate(): LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 
 @Serializable
 data class Course(
