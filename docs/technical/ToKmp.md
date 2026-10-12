@@ -1,5 +1,7 @@
 # 聚在工大iOS适配设计
 
+> 当前进展：已新增独立的 KMP 构建、共享课表首版、iPhone/iPad 宿主与手动 IPA Release 工作流，见 [iOS 实施说明](../../iosApp/README.md)。以下保留原始整体迁移规划；现阶段尚未完成全部 Android 功能的迁移。
+
 ## 背景
 外界呼声
 ## 条件

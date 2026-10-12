@@ -32,3 +32,14 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# iOS / Kotlin Multiplatform
+iosApp/*.xcodeproj/
+iosApp/Generated/
+*.xcuserstate
+xcuserdata/
+*.ipa
+*.xcarchive/
+*.xcresult/
+.konan/
+__pycache__/

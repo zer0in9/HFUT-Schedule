@@ -1,171 +1,50 @@
-# 聚在工大（HFUT-Schedule）
-![封面](/src/img/cover.png)
+# 聚在工大 · iOS 适配版（HFUT-Schedule）
 
-## 下载
-### 正式版
-<div align="center">
+本项目是对 [Chiu-xaH/HFUT-Schedule](https://github.com/Chiu-xaH/HFUT-Schedule) 的 **iOS / iPadOS 适配**，面向合肥工业大学学生，支持 **iOS / iPadOS 26.0 及以上的 iPhone 和 iPad**。
 
-[![GitHub](https://img.shields.io/github/v/release/Chiu-xaH/HFUT-Schedule?logo=github&label=GitHub&style=for-the-badge)](https://github.com/Chiu-xaH/HFUT-Schedule/releases/latest)
-[![F-Droid](https://img.shields.io/f-droid/v/com.hfut.schedule?logo=fdroid&style=for-the-badge)](https://f-droid.org/packages/com.hfut.schedule)
-[![F-Droid](https://img.shields.io/github/v/release/Chiu-xaH/HFUT-Schedule?logo=gitee&label=Gitee&style=for-the-badge)](https://gitee.com/chiu-xah/HFUT-Schedule/releases/tag/Android)
+采用 Kotlin Multiplatform（KMP）与 Compose Multiplatform，逐步迁移上游的校园服务功能。通过 **GitHub Actions 手动触发构建供自行签名安装的 IPA，并自动发布到本仓库的 Release**。
 
-</div>
+## 下载与安装
 
-> F-Droid 发行的版本经过重签名（无法与其他渠道版本更新覆盖安装 Apk），且节奏较慢，不推荐 ；
-> 
-> Github 发行的版本有三个 Apk，分别对应 arm64, x86_64, 通用包（universal），按需选择安装（一般选 arm64）；
-> 
-> Gitee 发行的版本只有 arm64，且只有 arm64 版本支持增量更新。
+前往 [本项目 Releases](https://github.com/zer0in9/HFUT-Schedule/releases) 下载构建成功后发布的 `.ipa`，同一安装包支持 iPhone 和 iPad。Release 同时提供 SHA-256 校验文件。
 
-### [开发版（Dev）](https://github.com/Chiu-xaH/HFUT-Schedule/releases/tag/Devevlop)
-> 供尝鲜正在开发中的版本，每次随代码 Push 而更新发行的 Apk，不代表最终正式版。
+这里的“自签 IPA”指供用户下载后自行重签的安装包：**CI 生成的是未签名 IPA，不能直接安装**。请使用自己的 Apple ID 或开发者证书，通过侧载工具完成签名和安装，无需向本仓库提供 Apple ID、密码或签名证书。
 
-### 资源包（可选）
-- 图片验证码识别模型（应用内下载，位于【选项-偏好与配置-图片验证码自动填充】）
-> 为减少 Apk 包体大小，验证码识别模型（约 11MB）拆分出来并支持可选下载；
-- 游客体验专用数据包（应用内下载，位于【选项-偏好与配置-备份与恢复】）
-> 为让其他开发者也可体验本应用，提供了游客数据包，导入后可解锁更多功能，但并非所有功能均可用，如有相关需求可联系开发者。
+## 手动构建与发布
 
-## 简介
-为合肥⼯业⼤学（HFUT）本科⽣开发的校园服务聚合类 Android 应⽤，覆盖了教学、⽣活、校内服务等 40+ 场景与功能，⽀持离⽹使⽤；使⽤现代的技术栈开发，提供全⾯、简洁、⾼效的使⽤体验。
+1. 打开本仓库的 [Actions → iOS IPA Release](https://github.com/zer0in9/HFUT-Schedule/actions/workflows/ios-release.yml)。
+2. 点击 **Run workflow**，选择构建分支并填写版本号（如 `0.1.0`）。
+3. 按需选择是否发布为预发行版，默认开启。
+4. 工作流依次执行共享代码测试、iPhone / iPad 模拟器检查、真机应用归档和 IPA 打包校验，成功后自动发布到 **Release**。
 
-界面展示（v4.20.1.3,实际以最新版本为准）：
+工作流仅通过手动触发运行，不随代码 push 自动构建。成功构建的 IPA 也会保存在该次 Actions 运行的 `ios-ipa` artifact 中。
 
-![截图](/src/img/ui.jpg)
+如需在自己的 Fork 中构建，请先确保默认分支包含工作流文件，并在自己的仓库中执行以上操作；仓库需允许 GitHub Actions 创建 Release。
 
-## 亮点
-界面: 使用着色器、实时模糊等特效，与 Material Design 3 融合，简约高效
+## 适配进度
 
-动效：自研第二代全局转场动画体系，符合直觉的一镜到底动效
+当前为 iOS 适配首版，已实现：
 
-更新：250+ 版本迭代，平均每周至少更新一次，带来新的功能、重构及优化
+- 离线课程新增、编辑、删除及本机保存。
+- 学期起始日期、星期、节次和周次设置。
+- iPhone 按天查看、iPad 宽屏整周展示及窗口宽度自适应。
+- 横竖屏、安全区、软键盘和系统深浅色适配。
+- 信息门户、教务、WebVPN、图书馆和新闻的浏览器入口。
 
-性能：冷启动迅速，开屏即展示关键信息；内存与存储占用适中
+统一认证、教务课表自动同步、成绩、校园卡、通知和桌面组件等功能尚未迁移。校园网站登录不会自动导入课程，当前也不支持导入上游备份；卸载应用会删除本机课表。
 
-## 开始使用
-### 要求
-Android 8.0 (SDK26+) 及以上，接入互联网
-### 初次使用
-保证接入互联网的环境下，填入学号与信息门户密码，登录，等待出现加载完成(底栏由暗变正常)，即可使用
-### 刷新登陆
-登陆后会获取所需的数据，自动缓存(例如课程表教务源、课程汇总等)，由于平台限制，有些平台不支持持久登录，在登录时会将过期的平台选择性地刷新
-### 软件升级
-在启动时自动检查更新，如有更新会在首页底栏【选项】显示小红点，选项界面会有下载提示，下载完成后点击安装，授权安装未知应用权限即可
+## 开发文档
 
-## 文档库
-### [更新日志](docs/update)
+- [iOS 本地构建、安装与迁移说明](iosApp/README.md)
+- [GitHub Actions 构建工作流](.github/workflows/ios-release.yml)
+- [KMP 迁移规划](docs/technical/ToKmp.md)
+- [上游开发文档](docs/Developer.md)
+- [上游校园 API 资料](docs/HfutApi.md)
 
-### [开发文档](docs/Developer.md) 
-正在佛系完善，方便参与本项目（Pull Request）时能方便地知晓各处轮子地用法
+仓库保留上游代码及历史文档以支持逐步迁移；其中的原平台功能描述不代表 iOS 版已实现。
 
-### [Pull Request 规范](/docs/Rule.md)
-如需参与本项目，请阅读
+## 上游与致谢
 
-### [架构介绍](/docs/Arch.md)
-待完善，目前有数据源图
+感谢 [Chiu-xaH/HFUT-Schedule](https://github.com/Chiu-xaH/HFUT-Schedule) 原作者及所有贡献者。本项目基于其代码进行 iOS 适配，原项目的代码、资源及贡献归属保持不变。
 
-### [DeepLink](docs/DeepLink.md)
-如有需要跳转其他场景的需求，可发 issue
-
-### [Aidl](docs/Aidl.md)
-暂时停更，如有接入需求，可发 issue 使其重启
-
-### [校内 Api 收集](docs/HfutApi.md)
-已停更，大部分核心接口已写好，因 AI 的发展，其余接口可直接让 AI 从代码中梳理即可
-
-### [功能差异化](/docs/FeatureAvailable.md)
-因安卓版本不同以及不同厂商定制系统，聚在工大某些功能呈现会有差异
-
-### [统计报表](/docs/Chart.md)
-仓库代码体量、用户量及日流量（通过 Supabase 平台托管，安全统计，无隐私数据，不定期更新）
-
-### 开发纪实
-本主题随缘更新，都是自己在开发项目时候的一些经历（但我对于写文章很懒，佛系更新...）
-
-#### [开发纪实：包体缩减](/docs/technical/PackageLess.md)
-如何让聚在工大从巅峰期的 49MB 缩减至目前的 26MB
-
-#### [开发纪实：容器共享](/docs/technical/ContainerShared.md) 
-对官方库的改造再封装，以及无奈妥协，最终决定自制SharedNav
-
-#### [开发纪实：KMP 改造](/docs/technical/ToKmp.md) 
-待开发，等买了 MacBook
-
-#### [开发纪实：聚在工大的 UI&UX 设计](/docs/technical/Design.md) (待更新)
-
-#### [开发纪实：聚在工大的背景与前世今生](/docs/technical/Background.md) (待更新)
-
-
-## [联系方式](zsh0908@outlook.com)
-开发者: zsh0908@outlook.com
-
-## [其他工具](/tools)
-[图片验证码训练模型](/tools/Captcha-Ocr)
-
-[校园网登录](/tools/Login-Web-Python)
-
-[WebVpn](tools/WebVpn)
-
-[PC版(集成WebVpn、校园网等工具)](/tools/Lite-For-PC) (待开发)
-
-## 鸣谢
-### 第三方库
-[OkHttp](https://github.com/square/okhttp) 网络请求
-
-[Retrofit](https://github.com/square/retrofit) 网络请求
-
-[Gson](https://github.com/google/gson) JSON解析
-
-[Jsoup](https://github.com/jhy/jsoup) XML/HTML解析
-
-[Zxing](https://github.com/zxing/zxing) 二维码
-
-[Haze](https://github.com/chrisbanes/haze) 层级模糊
-
-[Accompanist](https://github.com/google/accompanist) 扩展工具包
-
-[Glide](https://github.com/bumptech/glide) 图片
-
-[EdDSA Java](https://github.com/str4d/ed25519-java) 加密(供和风天气API使用)
-
-[Konfetti](https://github.com/DanielMartinus/Konfetti) 礼花动画
-
-[Tesseract4Android](https://github.com/adaptech-cz/Tesseract4Android) 封装Tesseract (供识别图片验证码)
-
-[MaterialKolor](https://github.com/jordond/MaterialKolor) 取色
-
-[Reorderable](https://github.com/Calvin-LL/Reorderable) 列表拖拽
-
-[LeakCanary](https://github.com/square/leakcanary) 内存泄漏工具
-
-[AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass) 液态玻璃
-
-[DeviceCompat](https://github.com/getActivity/DeviceCompat) 设备识别 (供判断鸿蒙NEXT环境)
-
-### 从本App解耦的库
-
-[DiffUpdater](https://github.com/Chiu-xaH/DiffUpdater) 增量更新
-
-[SharedNav](https://github.com/Chiu-xaH/SharedNav) 页面管理、容器共享、浮窗体系
-
-[Mirror-Android](https://github.com/Chiu-xaH/Mirror-Android) 镜面效果（着色器）
-
-### 开源项目
-[holiday-cn](https://github.com/NateScarlet/holiday-cn) 节假日数据源
-
-[webvpn-dlut](https://github.com/ESWZY/webvpn-dlut) WebVpn转换
-
-[Tesseract](https://github.com/tesseract-ocr/tesseract) 用于训练OCR识别验证码的[基础模型](https://github.com/tesseract-ocr/tessdata)
-
-[Supabase](https://github.com/supabase/supabase) 托管供提供数据库
-
-### 开源社区
-初期参考了 Space 课表(微信小程序)的一些功能设计，后期参考了若干开源 App (例如 [师韵-SmartHNU](https://github.com/JiaLiFuNia/SmartHNU))，还有对一些移动操作系统的借鉴，在此不一一列举了
-
-感谢其他高校开发者对本项目的肯定与参考，在此不一一列举了
-
-若干开发者和用户的帮助：
-- linsui 帮助上架 F-Droid
-- James-Zhang2 提供 GPA 评定数据源
-- tinyvan,Today1337, zxbmmmmmmmmm, Junpgle 提交 RR 助力开发
-- 其他用户帮助推广、通过邮件、issue 等提供功能建议与反馈等，在此不一一列举了
+许可证见 [LICENSE](LICENSE)。

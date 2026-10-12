@@ -36,6 +36,7 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    sourceSets["main"].java.srcDir("src/commonMain/kotlin")
 }
 
 dependencies {

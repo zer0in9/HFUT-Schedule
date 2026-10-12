@@ -1,0 +1,123 @@
+name: iOS IPA Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'iOS version (e.g. 0.1.0)'
+        required: true
+        default: '0.1.0'
+        type: string
+      prerelease:
+        description: 'Publish as a prerelease'
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 90
+    env:
+      IOS_VERSION: ${{ inputs.version }}
+      IOS_BUILD_NUMBER: ${{ github.run_number }}
+      # Kotlin 2.2.21 supports Xcode 26.0; don't inherit runner Xcode upgrades.
+      DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate version and toolchain
+        shell: bash
+        run: |
+          [[ "$IOS_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Expected version X.Y.Z'; exit 1; }
+          test -d "$DEVELOPER_DIR"
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Test shared business logic and compile shared UI
+        run: bash ./gradlew -p multiplatform :core:jvmTest :composeApp:compileKotlinJvm --stacktrace
+      - name: Generate Xcode project
+        working-directory: iosApp
+        run: xcodegen generate
+      - name: Smoke test iPhone and iPad
+        shell: bash
+        run: |
+          # SDK availability does not imply that the matching runtime is installed.
+          xcodebuild -downloadPlatform iOS -buildVersion 26.0 -architectureVariant universal
+          python3 iosApp/scripts/select-simulators.py > "$RUNNER_TEMP/ios-simulators.txt"
+          while read -r family udid; do
+            xcodebuild test -project iosApp/HFUTSchedule.xcodeproj -scheme HFUTSchedule \
+              -destination "platform=iOS Simulator,id=$udid" \
+              -resultBundlePath "iosApp/build/$family.xcresult" \
+              -derivedDataPath iosApp/build/SimulatorDerivedData \
+              CODE_SIGNING_ALLOWED=NO
+          done < "$RUNNER_TEMP/ios-simulators.txt"
+      - name: Archive and package IPA for personal signing
+        run: bash iosApp/scripts/package-ipa.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: |
+            iosApp/build/*.ipa
+            iosApp/build/*.sha256
+          if-no-files-found: error
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results
+          path: |
+            multiplatform/core/build/reports/tests/
+            iosApp/build/*.xcresult
+          if-no-files-found: warn
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      IOS_VERSION: ${{ inputs.version }}
+      PRERELEASE: ${{ inputs.prerelease }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ios-ipa
+          path: dist
+      - name: Publish Release
+        shell: bash
+        run: |
+          cd dist
+          sha256sum --check ./*.sha256
+          tag="ios-v${IOS_VERSION}-build.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
+          cat > "$RUNNER_TEMP/ios-release-notes.md" <<'NOTES'
+          ## 聚在工大 iOS 适配预览版
+
+          支持 iOS / iPadOS 26.0 及以上，适配 iPhone 和 iPad。
+
+          当前功能：离线课程增删改、周次查看、学期设置和校园网站入口。
+          统一认证、教务自动同步、成绩、校园卡等 Android 功能尚未迁移。
+
+          **本 IPA 未签名，不能直接安装。请使用自己的 Apple ID / 证书和侧载工具重新签名安装。**
+          无需向此仓库提供 Apple ID、密码、证书或描述文件。
+          SHA-256 校验文件随包附上。
+          NOTES
+          printf '\nSource commit: `%s`\n' "$GITHUB_SHA" >> "$RUNNER_TEMP/ios-release-notes.md"
+          args=()
+          if [[ "$PRERELEASE" == true ]]; then args+=(--prerelease); fi
+          gh release create "$tag" ./*.ipa ./*.sha256 \
+            --target "$GITHUB_SHA" --title "iOS ${IOS_VERSION} · Build ${GITHUB_RUN_NUMBER}" \
+            --notes-file "$RUNNER_TEMP/ios-release-notes.md" --latest=false "${args[@]}"

@@ -1,0 +1,73 @@
+name: HFUTSchedule
+options:
+  bundleIdPrefix: com.hfut
+  deploymentTarget:
+    iOS: "26.0"
+  xcodeVersion: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGNING_ALLOWED: NO
+targets:
+  HFUTSchedule:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    info:
+      path: Generated/Info.plist
+      properties:
+        CFBundleDisplayName: 聚在工大
+        CFBundleDevelopmentRegion: zh_CN
+        CFBundleLocalizations: [zh_CN, en]
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIRequiresFullScreen: false
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hfut.schedule.ios
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
+        FRAMEWORK_SEARCH_PATHS: "$(inherited) $(SRCROOT)/../multiplatform/composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
+        OTHER_LDFLAGS: "$(inherited) -framework ScheduleShared"
+    preBuildScripts:
+      - name: Build Kotlin framework
+        basedOnDependencyAnalysis: false
+        script: |
+          set -eu
+          cd "$SRCROOT/.."
+          bash ./gradlew -p multiplatform :composeApp:embedAndSignAppleFrameworkForXcode
+  HFUTScheduleUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: HFUTSchedule
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hfut.schedule.ios.uitests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  HFUTSchedule:
+    build:
+      targets:
+        HFUTSchedule: all
+    test:
+      targets: [HFUTScheduleUITests]
+    archive:
+      config: Release
