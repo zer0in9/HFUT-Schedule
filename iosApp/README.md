@@ -54,7 +54,7 @@ open HFUTSchedule.xcodeproj
 IOS_VERSION=0.1.0 IOS_BUILD_NUMBER=1 bash iosApp/scripts/package-ipa.sh
 ```
 
-工程默认为不签名。用 Xcode 直装真机时，需自行设置开发团队、匹配的 Bundle ID，并启用代码签名；这些个人配置不要提交。生成的 `.xcodeproj` 和 `Info.plist` 不入库，以 `project.yml` 为准。
+真机归档默认为不签名，模拟器使用无需证书的本地 ad-hoc 签名以启动应用和测试。用 Xcode 直装真机时，需自行设置开发团队、匹配的 Bundle ID，并启用代码签名；这些个人配置不要提交。生成的 `.xcodeproj` 和 `Info.plist` 不入库，以 `project.yml` 为准。
 
 ## 验证与下一步
 

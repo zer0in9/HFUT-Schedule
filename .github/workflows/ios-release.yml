@@ -43,6 +43,11 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/cache/restore@v4
+        id: konan-cache
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ runner.arch }}-kotlin-2.2.21-compose-1.9.3-xcode-26.0.1
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Test shared business logic and compile shared UI
@@ -50,19 +55,34 @@ jobs:
       - name: Generate Xcode project
         working-directory: iosApp
         run: xcodegen generate
-      - name: Smoke test iPhone and iPad
+      - name: Prepare iOS 26 simulators
+        timeout-minutes: 15
         shell: bash
         run: |
           # SDK availability does not imply that the matching runtime is installed.
           xcodebuild -downloadPlatform iOS -buildVersion 26.0 -architectureVariant universal
           python3 iosApp/scripts/select-simulators.py > "$RUNNER_TEMP/ios-simulators.txt"
-          while read -r family udid; do
-            xcodebuild test -project iosApp/HFUTSchedule.xcodeproj -scheme HFUTSchedule \
-              -destination "platform=iOS Simulator,id=$udid" \
-              -resultBundlePath "iosApp/build/$family.xcresult" \
-              -derivedDataPath iosApp/build/SimulatorDerivedData \
-              CODE_SIGNING_ALLOWED=NO
-          done < "$RUNNER_TEMP/ios-simulators.txt"
+          cat "$RUNNER_TEMP/ios-simulators.txt"
+      - name: Build simulator app and UI tests
+        timeout-minutes: 35
+        shell: bash
+        run: |
+          xcodebuild build-for-testing -project iosApp/HFUTSchedule.xcodeproj -scheme HFUTSchedule \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath iosApp/build/SimulatorDerivedData \
+            ARCHS="$(uname -m)" ONLY_ACTIVE_ARCH=YES \
+            CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+      - uses: actions/cache/save@v4
+        if: steps.konan-cache.outputs.cache-hit != 'true'
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ runner.arch }}-kotlin-2.2.21-compose-1.9.3-xcode-26.0.1
+      - name: Smoke test iPhone
+        timeout-minutes: 10
+        run: bash iosApp/scripts/test-simulator.sh iPhone
+      - name: Smoke test iPad
+        timeout-minutes: 10
+        run: bash iosApp/scripts/test-simulator.sh iPad
       - name: Archive and package IPA for personal signing
         run: bash iosApp/scripts/package-ipa.sh
       - uses: actions/upload-artifact@v4
@@ -80,6 +100,8 @@ jobs:
           path: |
             multiplatform/core/build/reports/tests/
             iosApp/build/*.xcresult
+            iosApp/build/*.png
+            iosApp/build/*.log
           if-no-files-found: warn
 
   release:

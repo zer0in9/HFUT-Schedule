@@ -13,6 +13,8 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     CODE_SIGNING_ALLOWED: NO
+    "CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]": YES
+    "CODE_SIGN_IDENTITY[sdk=iphonesimulator*]": "-"
 targets:
   HFUTSchedule:
     type: application
@@ -24,6 +26,7 @@ targets:
         CFBundleDisplayName: 聚在工大
         CFBundleDevelopmentRegion: zh_CN
         CFBundleLocalizations: [zh_CN, en]
+        CADisableMinimumFrameDurationOnPhone: true
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false

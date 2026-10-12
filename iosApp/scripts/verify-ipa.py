@@ -13,6 +13,7 @@ def verify(path):
         info = plistlib.loads(ipa.read(infos[0]))
         assert info["CFBundleIdentifier"] == "com.hfut.schedule.ios"
         assert info["CFBundlePackageType"] == "APPL"
+        assert info.get("CADisableMinimumFrameDurationOnPhone") is True, "Compose requires high refresh rate support"
         assert info["MinimumOSVersion"] == "26.0"
         assert set(info["UIDeviceFamily"]) == {1, 2}, "Must support iPhone and iPad"
         assert info["CFBundleSupportedPlatforms"] == ["iPhoneOS"], "Simulator payload"
