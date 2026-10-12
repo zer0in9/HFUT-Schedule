@@ -4,7 +4,8 @@ import subprocess
 
 catalog = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "-j"]))
 runtime = next((item for item in catalog["runtimes"]
-                if item["identifier"].endswith(".iOS-26-0") and item.get("isAvailable")), None)
+                if ".iOS-" in item["identifier"] and item.get("version", "").split(".")[:2] == ["26", "0"]
+                and item.get("isAvailable")), None)
 if runtime is None:
     raise SystemExit("Install the iOS 26.0 simulator runtime before running tests.")
 candidates = [device for device in catalog["devices"].get(runtime["identifier"], []) if device.get("isAvailable")]

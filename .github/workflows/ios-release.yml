@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: macos-26
+    runs-on: macos-15
     timeout-minutes: 90
     env:
       IOS_VERSION: ${{ inputs.version }}
@@ -36,6 +36,8 @@ jobs:
         run: |
           [[ "$IOS_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Expected version X.Y.Z'; exit 1; }
           test -d "$DEVELOPER_DIR"
+          sudo xcode-select --switch "$DEVELOPER_DIR"
+          sudo xcodebuild -runFirstLaunch
           xcodebuild -version
           xcrun --sdk iphoneos --show-sdk-version
       - uses: actions/setup-java@v4
@@ -59,9 +61,13 @@ jobs:
         timeout-minutes: 15
         shell: bash
         run: |
-          # SDK availability does not imply that the matching runtime is installed.
-          xcodebuild -downloadPlatform iOS -buildVersion 26.0 -architectureVariant universal
-          python3 iosApp/scripts/select-simulators.py > "$RUNNER_TEMP/ios-simulators.txt"
+          # Prefer the preinstalled runtime; only download if the image no longer includes it.
+          if ! python3 iosApp/scripts/select-simulators.py > "$RUNNER_TEMP/ios-simulators.txt"; then
+            variant=universal
+            if [[ "$(uname -m)" == arm64 ]]; then variant=arm64; fi
+            xcodebuild -downloadPlatform iOS -buildVersion 26.0 -architectureVariant "$variant"
+            python3 iosApp/scripts/select-simulators.py > "$RUNNER_TEMP/ios-simulators.txt"
+          fi
           cat "$RUNNER_TEMP/ios-simulators.txt"
       - name: Build simulator app and UI tests
         timeout-minutes: 35

@@ -62,4 +62,4 @@ IOS_VERSION=0.1.0 IOS_BUILD_NUMBER=1 bash iosApp/scripts/package-ipa.sh
 
 后续迁移优先顺序：统一认证与凭据 Keychain 存储 → Ktor 网络适配及教务课表解析 → Android/iOS 共用课表仓库 → 成绩与更多校园服务。不要将现有 Retrofit、Jsoup、Room、Context 或 SharedPreferences 引入 `commonMain`。
 
-工具链依据：[Kotlin/Xcode 兼容表](https://kotlinlang.org/docs/multiplatform/multiplatform-compatibility-guide.html)、[macOS runner 工具清单](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md)、[Apple 注册设备分发说明](https://developer.apple.com/documentation/xcode/distributing-your-app-to-registered-devices)。
+工具链依据：[Kotlin/Xcode 兼容表](https://kotlinlang.org/docs/multiplatform/multiplatform-compatibility-guide.html)、[macOS runner 工具清单](https://github.com/actions/runner-images/blob/main/images/macos/macos-15-arm64-Readme.md)、[Apple 注册设备分发说明](https://developer.apple.com/documentation/xcode/distributing-your-app-to-registered-devices)。
