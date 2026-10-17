@@ -29,6 +29,14 @@
 
 工作流仅 `workflow_dispatch` 触发，不会随 push 自动构建。Release 使用 `ios-v<版本>-build.<运行号>.<重试号>` 标签并指向本次构建 commit；不会覆盖 Android Release，也不会标为仓库最新正式版。
 
+### AltStore Classic 订阅源
+
+订阅地址：`https://github.com/zer0in9/HFUT-Schedule/releases/download/altstore/source.json`。在 AltStore Classic 的 Sources 中添加该 URL 即可查看、安装和更新应用。
+
+发布 job 从实际 IPA 的 `Info.plist` 读取包名、版本号、构建号和最低系统版本，并记录 IPA 字节大小与该次 Release 的下载地址。IPA 发布成功后，将 `source.json` 更新到固定的 `altstore` Release；首次成功执行后地址才会生效，无需启用 GitHub Pages。订阅包含最近一次成功发布的版本（包括预览版），安装仍需个人签名。
+
+Fork 会根据 `github.repository` 自动生成自己的源地址；请将文档地址中的 `zer0in9/HFUT-Schedule` 替换为自己的仓库。生成格式参见 [AltStore 官方文档](https://faq.altstore.io/developers/make-a-source)。当前未签名构建没有 entitlement；后续若增加相关能力，需同步维护生成脚本的 `appPermissions.entitlements`。
+
 无需配置签名 Secrets。工作流使用自带 `GITHUB_TOKEN`，仅发布 job 申请 `contents: write`；仓库/组织需允许 Actions 创建 Release，并有可用的 macOS runner 配额。工具链固定 Xcode 26.0.1，runner 如果移除此版本会明确失败，升级时需同步检查 Kotlin 兼容性。
 
 ## IPA 签名说明

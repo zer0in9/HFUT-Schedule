@@ -10,6 +10,16 @@
 
 这里的“自签 IPA”指供用户下载后自行重签的安装包：**CI 生成的是未签名 IPA，不能直接安装**。请使用自己的 Apple ID 或开发者证书，通过侧载工具完成签名和安装，无需向本仓库提供 Apple ID、密码或签名证书。
 
+### AltStore 订阅安装
+
+在 **AltStore Classic → Sources → +** 中添加以下订阅地址：
+
+```text
+https://github.com/zer0in9/HFUT-Schedule/releases/download/altstore/source.json
+```
+
+订阅源在包含此功能的工作流首次成功发布后生效，之后每次发布自动更新，包含预览版本。添加后可在 AltStore 中安装或更新「聚在工大」，仍需通过自己的 Apple ID 签名，要求 iOS / iPadOS 26.0 及以上。本订阅用于 AltStore Classic。
+
 ## 手动构建与发布
 
 1. 打开本仓库的 [Actions → iOS IPA Release](https://github.com/zer0in9/HFUT-Schedule/actions/workflows/ios-release.yml)。

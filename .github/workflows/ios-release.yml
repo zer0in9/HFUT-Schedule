@@ -120,6 +120,9 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    concurrency:
+      group: ios-altstore-publish
+      cancel-in-progress: false
     permissions:
       contents: write
     env:
@@ -128,6 +131,7 @@ jobs:
       IOS_VERSION: ${{ inputs.version }}
       PRERELEASE: ${{ inputs.prerelease }}
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: ios-ipa
@@ -138,6 +142,11 @@ jobs:
           cd dist
           sha256sum --check ./*.sha256
           tag="ios-v${IOS_VERSION}-build.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
+          ipas=(./*.ipa)
+          test "${#ipas[@]}" -eq 1
+          python3 ../iosApp/scripts/generate-altstore-source.py "${ipas[0]}" \
+            --repository "$GITHUB_REPOSITORY" --tag "$tag" --commit "$GITHUB_SHA" \
+            --output source.json
           cat > "$RUNNER_TEMP/ios-release-notes.md" <<'NOTES'
           ## 聚在工大 iOS 适配预览版
 
@@ -151,8 +160,17 @@ jobs:
           SHA-256 校验文件随包附上。
           NOTES
           printf '\nSource commit: `%s`\n' "$GITHUB_SHA" >> "$RUNNER_TEMP/ios-release-notes.md"
+          printf '\nAltStore Classic 订阅地址：https://github.com/%s/releases/download/altstore/source.json\n' "$GITHUB_REPOSITORY" >> "$RUNNER_TEMP/ios-release-notes.md"
           args=()
           if [[ "$PRERELEASE" == true ]]; then args+=(--prerelease); fi
           gh release create "$tag" ./*.ipa ./*.sha256 \
             --target "$GITHUB_SHA" --title "iOS ${IOS_VERSION} · Build ${GITHUB_RUN_NUMBER}" \
             --notes-file "$RUNNER_TEMP/ios-release-notes.md" --latest=false "${args[@]}"
+          # A dedicated release keeps the subscription URL stable across versions.
+          # Update only after the IPA is publicly available.
+          if ! gh release view altstore > /dev/null 2>&1; then
+            gh release create altstore --target "$GITHUB_SHA" \
+              --title 'AltStore 订阅源' --prerelease --latest=false \
+              --notes 'AltStore Classic 订阅源；每次 iOS 发布成功后自动更新，包含预览版本。'
+          fi
+          gh release upload altstore source.json --clobber
