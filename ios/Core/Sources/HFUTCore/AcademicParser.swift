@@ -17,6 +17,9 @@ public struct CourseSummary: Sendable {
     public var lessonIDs: [Int]
     public var courses: [Course]
     public var semesterStart: Date?
+    public init(lessonIDs: [Int], courses: [Course], semesterStart: Date?) {
+        self.lessonIDs = lessonIDs; self.courses = courses; self.semesterStart = semesterStart
+    }
 }
 
 public enum AcademicParser {

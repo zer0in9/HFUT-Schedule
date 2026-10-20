@@ -22,6 +22,7 @@ struct TodayView: View {
                         HStack(alignment: .top, spacing: 24) {
                             VStack(alignment: .leading, spacing: 20) {
                                 hero
+                                balanceOverview
                                 if store.snapshot.updatedAt == nil { welcome }
                                 else { todayCourses }
                             }.frame(maxWidth: .infinity)
@@ -32,6 +33,7 @@ struct TodayView: View {
                         }
                     } else {
                         hero
+                        balanceOverview
                         if store.snapshot.updatedAt == nil { welcome }
                         else { todayCourses }
                         personalSchedule
@@ -43,19 +45,17 @@ struct TodayView: View {
                     }
                 }.padding(20).frame(maxWidth: 1200).frame(maxWidth: .infinity)
             }
-            .refreshable { await store.refresh() }
+            .topBarRefreshable()
         }
         .background(Color(uiColor: .systemGroupedBackground))
-        .navigationTitle("聚在工大")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { Task { await store.refresh() } } label: {
-                    if store.isBusy { ProgressView() } else { Image(systemName: "arrow.clockwise") }
-                }.disabled(store.isBusy || !store.isAuthenticated).accessibilityLabel("同步校园数据")
-            }
-        }
+        .syncNavigationTitle("聚在工大")
+        .task { await store.refreshOnLaunch() }
         .sheet(item: $selectedEntry) { EntryDetail(entry: $0) }
         .sheet(isPresented: $showEvent) { EventEditor() }
+    }
+
+    private var balanceOverview: some View {
+        BalanceOverview(store: store.balances, isDemo: store.snapshot.isDemo, studentNumber: store.snapshot.profile.number)
     }
 
     private var todayCourses: some View {

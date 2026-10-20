@@ -18,8 +18,8 @@ struct AcademicView: View {
             Section {
                 Link(destination: URL(string: "http://jxglstu.hfut.edu.cn/eams5-student/")!) { Label("选课、教评及其他教务操作", systemImage: "safari") }
             } footer: { Text("选退课、教学评价等操作请在官方教务系统完成。原生页面提供只读查询。") }
-        }.navigationTitle("教务")
-            .refreshable { await store.refresh() }
+        }.syncNavigationTitle("教务")
+            .topBarRefreshable()
     }
 }
 
@@ -61,8 +61,8 @@ struct GradesView: View {
                     if !grade.detail.isEmpty { Text(grade.detail).font(.footnote).foregroundStyle(.secondary) }
                 }.textSelection(.enabled)
             }
-        }.navigationTitle("成绩查询").searchable(text: $search, prompt: "搜索课程")
-            .refreshable { await store.refresh() }
+        }.syncNavigationTitle("成绩查询").searchable(text: $search, prompt: "搜索课程")
+            .topBarRefreshable()
     }
     private func metric(_ title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 6) { Text(value).font(.title2.bold()); Text(title).font(.caption).foregroundStyle(.secondary) }
@@ -89,7 +89,7 @@ struct ExamsView: View {
                     }
                 }.padding(.vertical, 8).textSelection(.enabled)
             }
-        }.navigationTitle("考试安排").refreshable { await store.refresh() }
+        }.syncNavigationTitle("考试安排").topBarRefreshable()
     }
 }
 
@@ -100,7 +100,7 @@ struct CourseListView: View {
         List {
             Section { SessionBanner(); Text(Semester(id: store.snapshot.semesterID).title).foregroundStyle(.secondary) }
             ForEach(store.snapshot.courses.filter { query.isEmpty || $0.name.localizedCaseInsensitiveContains(query) }) { CourseRow(course: $0) }
-        }.navigationTitle("学期课程").searchable(text: $query, prompt: "搜索课程")
+        }.syncNavigationTitle("学期课程").searchable(text: $query, prompt: "搜索课程")
             .overlay { if store.snapshot.courses.isEmpty { ContentUnavailableView("暂无学期课程", systemImage: "books.vertical") } }
     }
 }
@@ -118,7 +118,7 @@ struct ProgramView: View {
             }
             Button(store.isBusy ? "正在加载…" : "加载 / 刷新培养方案") { Task { await store.loadProgram() } }
                 .disabled(!store.isAuthenticated || store.isBusy)
-        }.navigationTitle("培养方案")
+        }.syncNavigationTitle("培养方案")
     }
     private func module(_ item: ProgramModule) -> some View {
         VStack(alignment: .leading, spacing: 10) {

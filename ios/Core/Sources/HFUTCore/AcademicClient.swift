@@ -3,8 +3,8 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Cookies live only in this ephemeral session. No password or token is written to the snapshot.
-public actor AcademicClient {
+/// Networking stays ephemeral; the app stores a validated session separately in the device keychain.
+public actor AcademicClient: AcademicServing {
     public static let baseURL = URL(string: "http://jxglstu.hfut.edu.cn/eams5-student/")!
     public static let loginURL: URL = {
         var components = URLComponents(string: "https://cas.hfut.edu.cn/cas/login")!
@@ -32,13 +32,19 @@ public actor AcademicClient {
 
     public func clearSession() {
         session.configuration.httpCookieStorage?.removeCookies(since: .distantPast)
-        session.reset(completionHandler: {})
+    }
+
+    public func currentCookies() -> [HTTPCookie] {
+        (session.configuration.httpCookieStorage?.cookies(for: Self.baseURL) ?? []).filter {
+            $0.domain == "jxglstu.hfut.edu.cn" || $0.domain == ".jxglstu.hfut.edu.cn"
+        }
     }
 
     private func request(_ path: String, query: [URLQueryItem] = [], body: Data? = nil) async throws -> (Data, URL) {
         var components = URLComponents(url: Self.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         if !query.isEmpty { components.queryItems = query }
-        var request = URLRequest(url: components.url!)
+        var request = URLRequest(url: components.url!, cachePolicy: .reloadIgnoringLocalCacheData)
+        request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
         if let body {
             request.httpMethod = "POST"
             request.httpBody = body

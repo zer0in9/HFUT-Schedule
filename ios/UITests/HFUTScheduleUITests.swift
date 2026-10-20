@@ -12,6 +12,10 @@ final class HFUTScheduleUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.navigationBars["聚在工大"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.staticTexts["演示模式 · 所有数据均为示例"].exists)
+        XCTAssertTrue(app.buttons["balance-campusCard"].exists)
+        XCTAssertTrue(app.buttons["balance-shower"].exists)
+        XCTAssertTrue(app.buttons["balance-campusCard"].label.contains("演示余额"))
+        XCTAssertTrue(app.buttons["balance-shower"].label.contains("演示余额"))
 
         selectTab("课表", in: app)
         XCTAssertTrue(app.navigationBars["我的课表"].exists)

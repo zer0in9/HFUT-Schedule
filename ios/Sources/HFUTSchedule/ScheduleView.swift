@@ -31,8 +31,10 @@ struct ScheduleView: View {
                 Picker("课表布局", selection: $layout) { Text("日程").tag(0); Text("周视图").tag(1) }.pickerStyle(.segmented)
             }.padding()
             if entries.isEmpty {
-                ContentUnavailableView("本周没有课程", systemImage: "calendar", description: Text(store.snapshot.updatedAt == nil ? "登录后同步课表，或在“我的”中开启演示。" : "可切换周次，或下拉刷新课表。"))
-                    .frame(maxHeight: .infinity)
+                ScrollView {
+                    ContentUnavailableView("本周没有课程", systemImage: "calendar", description: Text(store.snapshot.updatedAt == nil ? "登录后同步课表，或在“我的”中开启演示。" : "可切换周次，或下拉刷新课表。"))
+                        .padding(.top, 40)
+                }.scrollBounceBehavior(.always, axes: .vertical).topBarRefreshable()
             } else if layout == 0 {
                 List {
                     ForEach(1...7, id: \.self) { day in
@@ -45,7 +47,7 @@ struct ScheduleView: View {
                             }
                         }
                     }
-                }.listStyle(.insetGrouped).refreshable { await store.refresh() }
+                }.listStyle(.insetGrouped).topBarRefreshable()
             } else {
                 GeometryReader { geometry in
                     weeklyGrid(dayWidth: max(horizontalSizeClass == .regular ? 88 : 112, (geometry.size.width - 56) / 7))
@@ -53,7 +55,7 @@ struct ScheduleView: View {
             }
         }
         .background(Color(uiColor: .systemGroupedBackground))
-        .navigationTitle("我的课表")
+        .syncNavigationTitle("我的课表")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { do { calendarURL = try store.exportCalendar() } catch { store.errorMessage = error.localizedDescription } }
@@ -116,6 +118,7 @@ struct ScheduleView: View {
                 }.frame(width: 48 + dayWidth * 7, height: 1080, alignment: .topLeading)
             }.padding(.trailing, 8)
         }.background(Color(uiColor: .secondarySystemGroupedBackground))
+            .topBarRefreshable()
     }
     private func minutes(_ time: Int) -> Int { time / 100 * 60 + time % 100 }
 }

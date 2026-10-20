@@ -92,7 +92,7 @@ jobs:
         run: python3 ios/scripts/prepare_version.py --version "$IOS_VERSION"
       - name: Install UI test project generator
         run: brew install xcodegen
-      - name: Run native navigation and event smoke test
+      - name: Run refresh/session tests and native navigation smoke test
         run: bash ios/scripts/ci-ui-tests.sh
       - uses: actions/upload-artifact@v4
         if: always()

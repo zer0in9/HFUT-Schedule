@@ -9,3 +9,6 @@ DerivedData/
 *.xcodeproj/
 *.xcresult/
 __pycache__/
+
+# Real accounts for local verification only
+/local-accounts.json

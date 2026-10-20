@@ -7,7 +7,8 @@
 | 功能 | iOS 实现 |
 | --- | --- |
 | 登录 | 官方 CAS 页面完成学号、密码、验证码认证；将教务域 Cookie 交给原生 URLSession |
-| 今日概览 | 今日课程、下一节课、教学周、个人日程、常用服务 |
+| 今日概览 | 校园卡余额、浴室水费余额、今日课程、下一节课、教学周、个人日程、常用服务 |
+| 自动刷新 | 冷启动首页恢复本机钥匙串会话并同步；下拉刷新强制请求网络；导航顶栏显示连接、进度与结果 |
 | 课表 | 按周切换、日程列表、按实际时间排布的周视图、详情、ICS 学期日历导出 |
 | 成绩 | 所有学期、学期筛选、课程搜索、按返回学分与绩点加权的参考 GPA |
 | 考试 | 考试时间、地点、距考试日期天数，保留待定安排 |
@@ -72,7 +73,7 @@ Apple 的 `CFBundleShortVersionString` 要求三段数字，因此包内使用 `
 1. `version`：验证发布脚本，用 GitHub Actions API 获取本次运行的日内编号，后续所有 job 共用同一版本。
 2. `core-tests`：macOS 上执行 `swift test --package-path ios/Core`，检查课程/成绩/考试/个人信息/培养方案解析、课程查询包装、HTTP 状态、课表 POST 请求字段、学期和教学周边界、ICS 时区/转义/UTF-8 折行，以及备份序列化。
 3. `xtool-build`：使用固定 xtool 1.22.2 构建 release arm64 通用 IPA，检查 iOS 26 最低版本、iPhone/iPad 设备族、版本元数据、图标及 ATS 范围，上传带版本的 artifact。
-4. `simulator-ui`：通过 iPhone/iPad 两组矩阵，分别选择最新可用的 iOS 26+ 模拟器；iPad 测试横屏导航与课表。使用演示数据运行导航、成绩和日程冒烟测试，分别上传含截图的 `.xcresult`。XcodeGen 仅生成 XCTest 宿主，发行包仍由 xtool 构建。
+4. `simulator-ui`：通过 iPhone/iPad 两组矩阵，分别选择最新可用的 iOS 26+ 模拟器；iPad 测试横屏导航与课表。宿主单元测试使用内存会话和假网络验证冷启动恢复、并发刷新合并、离线重试、部分失败和退出后丢弃迟到响应；UI 冒烟测试使用演示数据检查导航、成绩和日程，分别上传含截图的 `.xcresult`。XcodeGen 仅生成 XCTest 宿主，发行包仍由 xtool 构建。
 5. `prerelease`：等待上述所有检查成功，下载本次 IPA，然后创建草稿、上传附件、发布预发布版本；提交信息作为数据传给 API，不插入 shell 命令。
 
 `scripts/ci-ui-tests.sh` 会拒绝在 `CI=true` 以外的环境运行。真实学校账号、校园网络与接口响应不在公共 CI 中测试，也不需要将学校密码写入 GitHub secrets。
@@ -92,11 +93,29 @@ python3 -m unittest discover -s scripts/tests -p 'test_*.py'
 - 默认使用 `https://cas.hfut.edu.cn/cas/login?service=...` 官方认证。登录页面使用非持久 WKWebView，应用不读取输入框、不注入脚本、不保存密码。
 - 认证完成进入教务首页后点“完成登录”；原生客户端验证学生 ID 和业务 ID，随后同步课表、全部成绩、考试、个人信息。培养方案较大，按需加载。
 - 教务地址与字段来源为现有 `network-api/.../JxglstuService.kt`、`JxglstuCourseTableResponse.kt`、`JxglstuTermLessonResponse.kt` 和 `app/.../JxglstuRepository.kt`。特别地，课表 datum 请求使用当前代码的 `{lessonIds, studentId, weekIndex}` 对象，而非旧 `docs/HfutApi.md` 中的数组示例。
-- 教务域仍使用 HTTP。因此仅对 `jxglstu.hfut.edu.cn` 开启 ATS HTTP 例外；CAS 保持 HTTPS，未全局允许明文流量。使用可信校园网或系统 VPN；仅登录 WebVPN 网页不能给原生请求提供系统级网络。
-- Cookie 只在内存中的 ephemeral URLSession 内使用，重启应用后需重新登录才能同步。离线查看不需重新登录。过期会话会提示重新登录，缓存保持可用。
+- 教务和慧新易校沿用学校现有 HTTP 接口，仅对 `jxglstu.hfut.edu.cn` 与 `121.251.19.62` 开启 ATS HTTP 例外；CAS 和呱呱淋浴保持 HTTPS，未全局允许明文流量。使用可信校园网或系统 VPN；仅登录 WebVPN 网页不能给原生请求提供系统级网络。
+- 网络层仍使用 ephemeral URLSession；仅将教务域 Cookie 与对应学生 ID 存入本机钥匙串，使用 `WhenUnlockedThisDeviceOnly`，不保存密码、不进入 JSON 缓存或备份。冷启动进入首页时自动恢复会话并校验身份，再并发同步课表、成绩、考试与个人信息。会话最多恢复三小时，同时遵守 Cookie 自身的过期时间；过期后提示重新登录，缓存保持可用。
 - 账号切换时清空旧账号数据，避免混合。演示/备份恢复也不会成为真实登录状态。
 - 缓存使用 iOS 完整文件保护、原子写入并排除系统云备份。备份不包含 Cookie/密码。退出删除本地个人缓存；用户分享出去的文件需自行管理。
 - GPA 按筛选后的返回记录计算，没有推断重修覆盖规则或专业排名，以学校认定为准。同步时间表示最近有数据成功更新；部分接口失败会提示并保留旧数据。
+
+## 刷新交互
+
+“今天”页在问候卡片下显示校园卡与浴室水费余额。首次点按各自卡片连接账号：校园卡使用学号和慧新易校校园卡查询密码，浴室水费使用呱呱淋浴手机号和密码；这两个会话与教务会话独立。详情页支持刷新、更换账号和断开连接。校园卡将 `db_balance` 与 `unsettle_amount` 相加后由分换算为元，与 Android 端保持一致；淋浴读取 `accountMoney`，由千分之一元换算为元，不合并赠送余额。金额显示两位小数。
+
+余额接口契约来自 `network-api` 的 `HuiXinService`、`GuaGuaService` 及其响应模型。校园卡沿用 `Constant.HUI_XIN_URL` 的 `http://121.251.19.62/`，通过 `POST berserker-auth/oauth/token` 提交 `username`、`password`、`grant_type=password`、`logintype=sno`，携带与 Android 一致的 Basic 客户端认证；随后通过 `GET berserker-app/ykt/tsm/getCampusCards` 与 `synjones-auth: bearer <token>` 查询。此流程不经过 CAS，不使用信息门户密码。仅对这一 IP 添加 ATS HTTP 例外；iOS 17 及以上支持在 [Apple 官方 NSExceptionDomains 配置](https://developer.apple.com/documentation/bundleresources/information-property-list/nsapptransportsecurity/nsexceptiondomains) 中指定单个 IP，应用最低版本为 iOS 26。界面提示使用可信校园网或 VPN。
+
+淋浴通过 `https://bathing.hfut.edu.cn/` 请求，密码按上游要求取 MD5 的最后十位大写十六进制字符后提交；原始密码和摘要均不持久化。校园卡查询密码也不持久化。登录令牌与最近一次余额存入本机钥匙串，不进入 JSON 备份，退出、切换教务账号、进入演示或导入备份时清除；旧版信息门户校园卡令牌和对应余额会被移除，保留淋浴账号，避免向慧新易校发送其他服务的凭据。
+
+本地真实接口验证使用已被 Git 忽略的 `local-accounts.json`：`huixin.student_number` 与 `huixin.query_password` 用于校园卡，`shower.phone_number` 与 `shower.password` 用于淋浴；`portal` 中的统一认证密码不会用于校园卡。按用户要求限制验证次数，失败不自动重试。2026-10-21 已使用同一份原生网络客户端分别完成一次慧新易校、一次呱呱淋浴真实登录，以及各一次余额查询，均成功；未重试。完整应用显示仍待实机验证。
+
+冷启动和下拉刷新并发更新已连接的余额账号，即使教务会话失效也可独立查询。查询失败保留上次余额及其时间，并在卡片上标记；服务端确认登录过期时清除对应令牌并提示重新连接。未连接或缺少有效数据时显示占位符，零余额正常显示金额。演示模式只显示明确标注的示例余额，不发起请求。
+
+首页首次出现触发一次冷启动刷新，同一个 store 的多个窗口或重复进入首页不会重复启动。下拉刷新发起相同的同步流程；正在进行的刷新会合并，切换 Tab 不会取消请求。所有数据请求忽略 URLSession 的本地响应缓存，确保下拉后重新读取服务端。
+
+参考 [Telegram iOS 的网络状态标题切换](https://github.com/TelegramMessenger/Telegram-iOS/blob/master/submodules/ChatListUI/Sources/ChatListController.swift)，用 SwiftUI 在导航标题位置显示小型活动指示器与“连接中…”、“更新中…”，并显示完成的接口数量。完成后短暂显示“已更新”，再恢复页面标题；网络错误、部分失败可点按顶栏查看详情并重试，过期状态可点按登录。刷新过程不使用模态错误弹窗，也不让下拉控件持续显示第二个等待指示器。
+
+尚未登录时不发送匿名教务请求、不强制弹出登录页面；演示模式不发起真实网络请求。断网保留会话供手动重试；服务端确认过期或账号不符则清除会话并保留缓存。退出、恢复备份或切换演示数据会清理钥匙串会话；退出还会取消刷新并丢弃其迟到结果。
 
 ## 目录与依赖
 
@@ -109,6 +128,7 @@ ios/
     Tests/HFUTCoreTests/               # 合成 HTML/JSON fixture 与契约测试
   Resources/AppIcon.png               # 复用本项目现有应用图标
   UITests/, project.yml               # CI 专用 XCTest 宿主工程
+  Tests/                              # CI 内运行的刷新、会话与生命周期测试
   scripts/                            # 版本注入、预发布、静态 IPA 检查及 CI 测试
   Licenses/SwiftSoup-MIT.txt
 ```

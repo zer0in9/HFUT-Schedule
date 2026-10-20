@@ -29,7 +29,9 @@ with zipfile.ZipFile(path) as archive:
     assert 'UIInterfaceOrientationPortraitUpsideDown' in info['UISupportedInterfaceOrientations~ipad']
     transport = info['NSAppTransportSecurity']
     assert not transport.get('NSAllowsArbitraryLoads', False)
-    assert set(transport['NSExceptionDomains']) == {'jxglstu.hfut.edu.cn'}
+    exceptions = transport['NSExceptionDomains']
+    assert set(exceptions) == {'jxglstu.hfut.edu.cn', '121.251.19.62'}
+    assert all(value == {'NSExceptionAllowsInsecureHTTPLoads': True} for value in exceptions.values())
     executable = info_path.rsplit('/', 1)[0] + '/' + info['CFBundleExecutable']
     header = archive.read(executable)[:12]
     magic, cpu, _ = struct.unpack('<III', header)

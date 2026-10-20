@@ -35,6 +35,6 @@ struct ServicesView: View {
                     }
                 }
             }
-        }.navigationTitle("校园服务").searchable(text: $query, prompt: "搜索校园服务")
+        }.syncNavigationTitle("校园服务").searchable(text: $query, prompt: "搜索校园服务")
     }
 }

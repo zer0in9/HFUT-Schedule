@@ -35,7 +35,7 @@ struct SettingsView: View {
                 Picker("同步学期", selection: $store.selectedSemester) {
                     ForEach(semesters, id: \.self) { Text(Semester(id: $0).title).tag($0) }
                 }.disabled(store.isBusy)
-                Button(store.isBusy ? "正在同步…" : "同步课表、成绩与考试") { Task { await store.refresh() } }.disabled(store.isBusy || !store.isAuthenticated)
+                Button(store.isBusy ? "正在同步…" : "同步课表、成绩与考试") { Task { await store.refresh() } }.disabled(store.isBusy || store.snapshot.isDemo)
             }
             Section {
                 NavigationLink("个人日程") { EventsView() }.accessibilityIdentifier("personal-events")
@@ -52,7 +52,7 @@ struct SettingsView: View {
                 Link("反馈问题", destination: URL(string: "https://github.com/Chiu-xaH/HFUT-Schedule/issues")!)
             }
         }
-        .navigationTitle("我的")
+        .syncNavigationTitle("我的")
         .confirmationDialog("退出并删除缓存、课表、成绩和个人日程？", isPresented: $showErase, titleVisibility: .visible) {
             Button("退出并清除", role: .destructive) { Task { await store.signOut() } }
         }
@@ -120,7 +120,7 @@ struct PrivacyView: View {
     var body: some View {
         List {
             Section("账号与数据") {
-                Text("统一认证使用学校官方 HTTPS 页面。应用不读取或保存你的密码；教务会话仅保存在内存中，重新启动后需再次登录同步。")
+                Text("统一认证使用学校官方 HTTPS 页面，应用不读取或保存你的密码。教务会话保存在本机钥匙串中，仅设备解锁后可用，不迁移到其他设备。冷启动首页会恢复并校验会话后同步；过期后需重新登录。")
                 Text("学校教务系统当前使用 HTTP，应用仅对 jxglstu.hfut.edu.cn 放开传输限制。请使用可信校园网或系统 VPN。")
                 Text("课表、成绩、考试、培养方案和日程保存在本机，使用 iOS 文件保护并排除系统云备份。没有广告、统计上报或第三方数据服务器。")
                 Text("退出会删除应用中的个人缓存及会话。已导出的文件不受此操作影响，请自行管理。")

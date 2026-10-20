@@ -15,7 +15,7 @@ struct SessionBanner: View {
         if store.snapshot.isDemo {
             Label("演示模式 · 所有数据均为示例", systemImage: "sparkles")
                 .font(.footnote).foregroundStyle(.orange).frame(maxWidth: .infinity, alignment: .leading)
-        } else if !store.isAuthenticated {
+        } else if !store.isAuthenticated && !store.syncStatus.isActive {
             Button { store.showLogin = true } label: {
                 Label(store.snapshot.updatedAt == nil ? "登录以同步校园数据" : "正在查看离线缓存 · 登录后可同步", systemImage: "lock.open")
                     .font(.footnote).frame(maxWidth: .infinity, alignment: .leading)

@@ -37,7 +37,8 @@ final class ClientTests: XCTestCase {
         AcademicStub.handler = { request in
             let url = request.url!
             let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: ["Content-Type": "application/json"])!
-            XCTAssertNotNil(request.value(forHTTPHeaderField: "User-Agent"))
+            XCTAssertEqual(request.value(forHTTPHeaderField: "User-Agent"), AcademicClient.userAgent)
+            XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalCacheData)
             if url.path.hasSuffix("get-data") {
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)!.queryItems!
                 XCTAssertEqual(query.first { $0.name == "semesterId" }?.value, "354")
