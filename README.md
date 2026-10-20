@@ -29,6 +29,10 @@
 ## 简介
 为合肥⼯业⼤学（HFUT）本科⽣开发的校园服务聚合类 Android 应⽤，覆盖了教学、⽣活、校内服务等 40+ 场景与功能，⽀持离⽹使⽤；使⽤现代的技术栈开发，提供全⾯、简洁、⾼效的使⽤体验。
 
+### 原生 iOS 版本（本分支）
+
+[ios/](ios/README.md) 提供使用 Swift、SwiftUI 和 xtool 构建的 iOS/iPadOS 26+ 原生版本，支持 Liquid Glass 导航、iPad 侧栏与宽屏布局，包含课表、成绩、考试等教务查询与离线缓存。每次分支提交推送触发 GitHub Actions，按 `YYYY.M.D.X` 编号，构建与 iPhone/iPad 测试通过后自动发布以 commit message 为说明的预发布版本及未签名 IPA。构建方法、功能覆盖及验证限制见 [iOS 开发说明](ios/README.md)。本机开发不运行真机或模拟器测试。
+
 界面展示（v4.20.1.3,实际以最新版本为准）：
 
 ![截图](/src/img/ui.jpg)

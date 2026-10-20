@@ -1,0 +1,126 @@
+name: Native iOS
+
+# Every branch push builds its head commit. Release tags never trigger another build.
+on:
+  push:
+    branches: ['**']
+
+permissions:
+  contents: read
+  actions: read
+
+# Do not cancel older commits: each push gets its own daily build number and release.
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check release automation
+        run: |
+          node --test ios/scripts/tests/*.test.cjs
+          python3 -m unittest discover -s ios/scripts/tests -p 'test_*.py'
+      - name: Allocate Shanghai daily workflow version
+        id: version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await require('./ios/scripts/ci-version.cjs')({ github, context, core });
+
+  core-tests:
+    needs: version
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test parsing, transport, calendar and cache models
+        run: swift test --package-path ios/Core
+
+  xtool-build:
+    needs: version
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      IOS_VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Stamp app version
+        run: python3 ios/scripts/prepare_version.py --version "$IOS_VERSION"
+      - name: Install xtool 1.22.2
+        run: |
+          curl --fail --location --retry 3 https://github.com/xtool-org/xtool/releases/download/1.22.2/xtool.app.zip -o "$RUNNER_TEMP/xtool.zip"
+          ditto -x -k "$RUNNER_TEMP/xtool.zip" "$RUNNER_TEMP/xtool-install"
+          chmod +x "$RUNNER_TEMP/xtool-install/xtool.app/Contents/MacOS/xtool"
+          echo "$RUNNER_TEMP/xtool-install/xtool.app/Contents/MacOS" >> "$GITHUB_PATH"
+      - name: Build unsigned universal iPhone/iPad IPA with xtool
+        working-directory: ios
+        run: xtool dev build --configuration release --ipa
+      - name: Validate and name IPA
+        run: |
+          python3 ios/scripts/check_ipa.py ios/xtool/HFUTSchedule.ipa --version "$IOS_VERSION"
+          mkdir -p release-assets
+          cp ios/xtool/HFUTSchedule.ipa "release-assets/HFUTSchedule-$IOS_VERSION.ipa"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HFUTSchedule-${{ env.IOS_VERSION }}-unsigned
+          path: release-assets/*.ipa
+          if-no-files-found: error
+          overwrite: true
+
+  simulator-ui:
+    needs: version
+    runs-on: macos-15
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        device-family: [iPhone, iPad]
+    env:
+      IOS_VERSION: ${{ needs.version.outputs.version }}
+      IOS_DEVICE_FAMILY: ${{ matrix.device-family }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Stamp app version
+        run: python3 ios/scripts/prepare_version.py --version "$IOS_VERSION"
+      - name: Install UI test project generator
+        run: brew install xcodegen
+      - name: Run native navigation and event smoke test
+        run: bash ios/scripts/ci-ui-tests.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: HFUTSchedule-${{ matrix.device-family }}-ui-test-results
+          path: ios/UITests.xcresult
+          if-no-files-found: warn
+          overwrite: true
+
+  prerelease:
+    needs: [version, core-tests, xtool-build, simulator-ui]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    env:
+      IOS_VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: HFUTSchedule-${{ env.IOS_VERSION }}-unsigned
+          path: release-assets
+      - name: Publish commit message and IPA as prerelease
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await require('./ios/scripts/ci-release.cjs')({ github, context, core });

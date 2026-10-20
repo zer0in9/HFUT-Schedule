@@ -1,0 +1,11 @@
+.build/
+.swiftpm/
+xtool/
+DerivedData/
+*.ipa
+*.app/
+.DS_Store
+.bsp/
+*.xcodeproj/
+*.xcresult/
+__pycache__/

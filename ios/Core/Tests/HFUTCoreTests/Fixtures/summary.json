@@ -1,0 +1,12 @@
+{
+  "lessonIds": [71801],
+  "lessons": [{
+    "id": 71801, "code": "TEST-001", "nameZh": "测试班",
+    "course": {"id": 9100, "nameZh": "程序设计基础", "credits": 4, "code": "CS101"},
+    "courseType": {"nameZh": "必修"},
+    "teacherAssignmentList": [{"person": {"nameZh": "示例教师"}}],
+    "scheduleText": {"dateTimePlacePersonText": {"textZh": "周一 A-201"}},
+    "semester": {"id": 354, "nameZh": "2026-2027 第一学期", "startDate": "2026-08-31", "endDate": "2027-01-24"}
+  }],
+  "timeTableLayoutId": 1, "weekIndices": [1, 2, 3], "currentWeek": 1
+}

@@ -1,0 +1,4 @@
+{"result":{"lessonList":[],"scheduleList":[
+  {"lessonId":71801,"room":{"nameZh":"教学楼 A-201"},"weekday":1,"personName":"示例教师","weekIndex":1,"startTime":800,"endTime":940,"periods":2,"date":"2026-08-31","lessonType":"NORMAL"},
+  {"lessonId":71801,"room":null,"weekday":3,"personName":"示例教师","weekIndex":1,"startTime":1400,"endTime":1540,"periods":2,"date":"2026-09-02","lessonType":"NORMAL"}
+],"scheduleGroupList":[]}}
