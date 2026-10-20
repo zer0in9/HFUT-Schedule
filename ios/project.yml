@@ -31,7 +31,7 @@ targets:
     dependencies:
       - package: HFUTCore
   HFUTScheduleTests:
-    type: bundle.unit-testing
+    type: bundle.unit-test
     platform: iOS
     sources: [Tests]
     settings:
