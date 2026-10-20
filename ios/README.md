@@ -72,7 +72,7 @@ Apple 的 `CFBundleShortVersionString` 要求三段数字，因此包内使用 `
 
 1. `version`：验证发布脚本，用 GitHub Actions API 获取本次运行的日内编号，后续所有 job 共用同一版本。
 2. `core-tests`：macOS 上执行 `swift test --package-path ios/Core`，检查课程/成绩/考试/个人信息/培养方案解析、课程查询包装、HTTP 状态、课表 POST 请求字段、学期和教学周边界、ICS 时区/转义/UTF-8 折行，以及备份序列化。
-3. `xtool-build`：使用固定 xtool 1.22.2 构建 release arm64 通用 IPA，检查 iOS 26 最低版本、iPhone/iPad 设备族、版本元数据、图标及 ATS 范围，上传带版本的 artifact。
+3. `xtool-build`：使用固定 xtool 1.22.2 构建 release arm64 通用 IPA，检查 iOS 26 最低版本、iPhone/iPad 设备族、版本元数据、图标及 ATS 范围，上传带版本的 artifact。CI 直接调用 macOS 应用内部程序时设置 `XTL_CLI=1`，与官方 CLI 启动脚本一致，避免启动 GUI 后一直等待；安装步骤先输出版本以检查入口。
 4. `simulator-ui`：通过 iPhone/iPad 两组矩阵，分别选择最新可用的 iOS 26+ 模拟器；iPad 测试横屏导航与课表。宿主单元测试使用内存会话和假网络验证冷启动恢复、并发刷新合并、离线重试、部分失败和退出后丢弃迟到响应；UI 冒烟测试使用演示数据检查导航、成绩和日程，分别上传含截图的 `.xcresult`。XcodeGen 仅生成 XCTest 宿主，发行包仍由 xtool 构建。
 5. `prerelease`：等待上述所有检查成功，下载本次 IPA，然后创建草稿、上传附件、发布预发布版本；提交信息作为数据传给 API，不插入 shell 命令。
 

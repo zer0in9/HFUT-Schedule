@@ -44,6 +44,8 @@ jobs:
     timeout-minutes: 30
     env:
       IOS_VERSION: ${{ needs.version.outputs.version }}
+      # The macOS app binary starts its GUI unless invoked in CLI mode.
+      XTL_CLI: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: maxim-lobanov/setup-xcode@v1
@@ -56,6 +58,7 @@ jobs:
           curl --fail --location --retry 3 https://github.com/xtool-org/xtool/releases/download/1.22.2/xtool.app.zip -o "$RUNNER_TEMP/xtool.zip"
           ditto -x -k "$RUNNER_TEMP/xtool.zip" "$RUNNER_TEMP/xtool-install"
           chmod +x "$RUNNER_TEMP/xtool-install/xtool.app/Contents/MacOS/xtool"
+          "$RUNNER_TEMP/xtool-install/xtool.app/Contents/MacOS/xtool" --version
           echo "$RUNNER_TEMP/xtool-install/xtool.app/Contents/MacOS" >> "$GITHUB_PATH"
       - name: Build unsigned universal iPhone/iPad IPA with xtool
         working-directory: ios
