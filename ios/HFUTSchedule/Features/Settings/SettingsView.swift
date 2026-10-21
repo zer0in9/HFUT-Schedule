@@ -53,7 +53,7 @@ struct SettingsView: View {
                 LabeledContent("聚在工大 iOS", value: Bundle.main.object(forInfoDictionaryKey: "HFUTDisplayVersion") as? String ?? "本地构建")
                 NavigationLink("隐私与功能说明") { PrivacyView() }
                 Link("项目源代码", destination: URL(string: "https://github.com/Chiu-xaH/HFUT-Schedule")!)
-                Link("反馈问题", destination: URL(string: "https://github.com/Chiu-xaH/HFUT-Schedule/issues")!)
+                Link("反馈问题", destination: URL(string: "https://github.com/zer0in9/HFUT-Schedule/issues")!)
             }
         }
         .syncNavigationTitle("我的")
