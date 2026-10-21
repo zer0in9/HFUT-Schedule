@@ -1,7 +1,7 @@
 version: 1
 bundleID: com.hfut.schedule.ios
-infoPath: Info.plist
-iconPath: Resources/AppIcon.png
+infoPath: HFUTSchedule/Info.plist
+iconPath: HFUTSchedule/Resources/AppIcon.png
 resources:
-  - Licenses/SwiftSoup-MIT.txt
+  - HFUTSchedule/Resources/Licenses/SwiftSoup-MIT.txt
   - ../LICENSE

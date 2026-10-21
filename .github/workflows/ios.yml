@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Test parsing, transport, calendar and cache models
-        run: swift test --package-path ios/Core
+        run: swift test --package-path ios/Packages/HFUTCore
 
   xtool-build:
     needs: version

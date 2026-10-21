@@ -33,7 +33,7 @@ def main():
     args = parser.parse_args()
     today = dt.datetime.now(ZoneInfo("Asia/Shanghai")).date()
     version = args.version or f"{today.year}.{today.month}.{today.day}.0"
-    info_path = IOS_ROOT / "Info.plist"
+    info_path = IOS_ROOT / "HFUTSchedule" / "Info.plist"
     info = plistlib.loads(info_path.read_bytes())
     info.update(version_fields(version))
     info_path.write_bytes(plistlib.dumps(info, sort_keys=False))

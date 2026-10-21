@@ -1,4 +1,4 @@
-# XcodeGen is used only for CI XCTest hosting; the shipping build uses xtool/SwiftPM.
+# Shared application layout for Xcode development and CI; shipping uses xtool/SwiftPM.
 name: HFUTSchedule
 options:
   bundleIdPrefix: com.hfut.schedule
@@ -6,7 +6,7 @@ options:
     iOS: '26.0'
 packages:
   HFUTCore:
-    path: Core
+    path: Packages/HFUTCore
 settings:
   base:
     SWIFT_VERSION: '5.0'
@@ -17,8 +17,11 @@ targets:
     type: application
     platform: iOS
     sources:
-      - Sources/HFUTSchedule
-      - path: Licenses
+      - path: HFUTSchedule
+        excludes:
+          - Info.plist
+          - Resources
+      - path: HFUTSchedule/Resources
         buildPhase: resources
       - path: ../LICENSE
         buildPhase: resources
@@ -26,14 +29,14 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.hfut.schedule.ios
         GENERATE_INFOPLIST_FILE: NO
-        INFOPLIST_FILE: Info.plist
+        INFOPLIST_FILE: HFUTSchedule/Info.plist
         ENABLE_TESTABILITY: YES
     dependencies:
       - package: HFUTCore
   HFUTScheduleTests:
     type: bundle.unit-test
     platform: iOS
-    sources: [Tests]
+    sources: [HFUTScheduleTests]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.hfut.schedule.ios.tests
@@ -45,7 +48,7 @@ targets:
   HFUTScheduleUITests:
     type: bundle.ui-testing
     platform: iOS
-    sources: [UITests]
+    sources: [HFUTScheduleUITests]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.hfut.schedule.ios.uitests
