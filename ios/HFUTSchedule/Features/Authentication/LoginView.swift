@@ -105,7 +105,7 @@ struct LoginView: View {
                 }
                 LoginWebView(browser: browser)
             }
-            .navigationTitle("登录聚在工大").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("登录 coola").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {

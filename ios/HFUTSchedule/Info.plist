@@ -7,11 +7,11 @@
 	<key>CFBundleExecutable</key>
 	<string>HFUTSchedule</string>
 	<key>CFBundleName</key>
-	<string>HFUTSchedule</string>
+	<string>coola</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleDisplayName</key>
-	<string>聚在工大</string>
+	<string>coola</string>
 	<key>CFBundleShortVersionString</key>
 	<string>2026.10.20</string>
 	<key>CFBundleVersion</key>

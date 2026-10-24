@@ -16,7 +16,7 @@ with zipfile.ZipFile(path) as archive:
     info_path, = [name for name in archive.namelist() if name.startswith('Payload/') and name.count('/') == 2 and name.endswith('/Info.plist')]
     info = plistlib.loads(archive.read(info_path))
     assert info['CFBundleIdentifier'] == 'com.hfut.schedule.ios', info
-    assert info['CFBundleDisplayName'] == '聚在工大'
+    assert info['CFBundleDisplayName'] == 'coola'
     fields = version_fields(info['HFUTDisplayVersion'])
     assert all(info[key] == value for key, value in fields.items()), 'Inconsistent version metadata'
     if args.version:

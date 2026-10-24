@@ -50,7 +50,7 @@ struct SettingsView: View {
             } header: { Text("本地数据") }
             footer: { Text("备份包含个人课表和成绩，请妥善保存。恢复会替换现有数据，不包含登录凭据。") }
             Section("关于") {
-                LabeledContent("聚在工大 iOS", value: Bundle.main.object(forInfoDictionaryKey: "HFUTDisplayVersion") as? String ?? "本地构建")
+                LabeledContent("coola", value: Bundle.main.object(forInfoDictionaryKey: "HFUTDisplayVersion") as? String ?? "本地构建")
                 NavigationLink("隐私与功能说明") { PrivacyView() }
                 Link("项目源代码", destination: URL(string: "https://github.com/Chiu-xaH/HFUT-Schedule")!)
                 Link("反馈问题", destination: URL(string: "https://github.com/zer0in9/HFUT-Schedule/issues")!)

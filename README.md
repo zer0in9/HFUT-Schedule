@@ -1,4 +1,4 @@
-# 聚在工大（HFUT-Schedule）
+# coola
 
 面向合肥工业大学本科生的原生 iOS/iPadOS 校园服务应用，使用 Swift 和 SwiftUI 开发，支持 iOS/iPadOS 26 及以上的 iPhone 与 iPad。
 

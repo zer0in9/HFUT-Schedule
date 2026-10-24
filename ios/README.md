@@ -1,4 +1,4 @@
-# 聚在工大 · 原生 iOS
+# coola · 原生 iOS
 
 使用 Swift + SwiftUI 实现，仅支持 iOS/iPadOS 26 及以上，适配 iPhone 和 iPad；通过 SwiftPM + [xtool](https://github.com/xtool-org/xtool) 交叉编译和打包。应用源码、测试和构建配置统一放在 `ios/` 中。
 

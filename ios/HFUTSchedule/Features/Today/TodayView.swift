@@ -51,7 +51,7 @@ struct TodayView: View {
             .topBarRefreshable()
         }
         .background(Color(uiColor: .systemGroupedBackground))
-        .syncNavigationTitle("聚在工大")
+        .syncNavigationTitle("coola")
         .task { await store.refreshOnLaunch() }
         .sheet(item: $selectedEntry) { EntryDetail(entry: $0) }
         .sheet(isPresented: $showEvent) { EventEditor() }
