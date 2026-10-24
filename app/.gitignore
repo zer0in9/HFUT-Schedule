@@ -1,5 +1,0 @@
-build/
-/release/
-!src/release/
-!src/release/**
-/release/output-metadata.json

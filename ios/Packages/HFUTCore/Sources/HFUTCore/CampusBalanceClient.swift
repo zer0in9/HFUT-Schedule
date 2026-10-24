@@ -50,7 +50,7 @@ public enum BalanceError: LocalizedError, Equatable {
     }
 }
 
-/// Contracts mirror HuiXinService/GuaGuaService and their response models in network-api.
+/// Implements the HuiXin campus card and GuaGua shower service contracts.
 public actor CampusBalanceClient: CampusBalanceServing {
     public static let cardURL = URL(string: "http://121.251.19.62/")!
     public static let showerURL = URL(string: "https://bathing.hfut.edu.cn/")!

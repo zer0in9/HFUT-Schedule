@@ -1,6 +1,6 @@
 # 聚在工大 · 原生 iOS
 
-使用 Swift + SwiftUI 实现，仅支持 iOS/iPadOS 26 及以上，适配 iPhone 和 iPad；通过 SwiftPM + [xtool](https://github.com/xtool-org/xtool) 交叉编译和打包，不依赖 Android 运行时、Kotlin 桥接或网页壳。独立放在 `ios/` 中，不改变 Android 构建。
+使用 Swift + SwiftUI 实现，仅支持 iOS/iPadOS 26 及以上，适配 iPhone 和 iPad；通过 SwiftPM + [xtool](https://github.com/xtool-org/xtool) 交叉编译和打包。应用源码、测试和构建配置统一放在 `ios/` 中。
 
 ## 功能覆盖
 
@@ -56,7 +56,7 @@ APPIMAGE_EXTRACT_AND_RUN=1 xtool dev build --configuration release --ipa
 
 ## 版本与自动预发布
 
-版本格式为 `YYYY.M.D.X`，例如 `2026.10.20.3`。App 关于页面、IPA 附件名和预发布标题均显示完整版本；标签使用 `ios-2026.10.20.3`，避免与 Android 的标签混淆。
+版本格式为 `YYYY.M.D.X`，例如 `2026.10.20.3`。App 关于页面、IPA 附件名和预发布标题均显示完整版本；标签使用 `ios-2026.10.20.3`。
 
 - 日期以本工作流运行创建时的 **Asia/Shanghai（北京时间）** 为准，月份和日期不补零。
 - `X` 从 1 开始，按当天本 iOS 工作流的运行顺序计算，跨分支统一编号；失败、取消的运行也占用编号。它不是仓库总 `run_number`，也不把测试矩阵的每个 job 计为一次构建。
@@ -93,10 +93,10 @@ python3 -m unittest discover -s scripts/tests -p 'test_*.py'
 
 - 默认使用 `https://cas.hfut.edu.cn/cas/login?service=...` 官方认证。登录页面使用非持久 WKWebView，并从本机钥匙串恢复有效的 CAS 会话；不读取网页输入的密码。用户主动点“填入已保存账号”时，通过 WebKit 参数绑定向官方 HTTPS CAS 表单填入配置的凭据，不自动提交验证码表单、不把密码插入脚本源码。
 - 认证完成进入教务首页后点“完成登录”；原生客户端验证学生 ID 和业务 ID，随后统一同步课表与学期课程、全部成绩、考试、个人信息、培养方案，并刷新已配置的余额账号。
-- 教务地址与字段来源为现有 `network-api/.../JxglstuService.kt`、`JxglstuCourseTableResponse.kt`、`JxglstuTermLessonResponse.kt` 和 `app/.../JxglstuRepository.kt`。特别地，课表 datum 请求使用当前代码的 `{lessonIds, studentId, weekIndex}` 对象，而非旧 `docs/HfutApi.md` 中的数组示例。
+- 教务请求与响应解析由 `Packages/HFUTCore/Sources/HFUTCore/AcademicClient.swift` 和 `AcademicParser.swift` 实现。课表 datum 请求使用 `{lessonIds, studentId, weekIndex}` 对象；`../docs/HfutApi.md` 为历史接口资料，其中的数组示例已过时。
 - 教务和慧新易校沿用学校现有 HTTP 接口，仅对 `jxglstu.hfut.edu.cn` 与 `121.251.19.62` 开启 ATS HTTP 例外；CAS 和呱呱淋浴保持 HTTPS，未全局允许明文流量。使用可信校园网或系统 VPN；仅登录 WebVPN 网页不能给原生请求提供系统级网络。
 - 网络层使用 ephemeral URLSession；将严格限定到教务域和 CAS 域的 Cookie 与对应学生 ID 存入本机钥匙串，保留 Secure、HttpOnly 和过期属性。CAS Cookie 强制仅通过 HTTPS 发送，TGC 保持 HttpOnly。不再以本地三小时期限淘汰会话：冷启动先恢复未到 Cookie 过期时间的会话，再以服务端身份校验为准。
-- 教务过期后，每轮刷新最多续登一次：先尝试 CAS 单点登录；若需重新认证且用户保存了统一认证密码，则按 Android 上游 `checkInitParams`（`vercode`）、`LOGIN_FLAVORING`、AES/ECB/PKCS7 与表单字段契约登录。密码仅提交到官方 HTTPS CAS 地址。验证码或认证拒绝会持久暂停该账号的密码自动尝试，修改并保存可重新启用；仍可手动完成官方网页认证。
+- 教务过期后，每轮刷新最多续登一次：先尝试 CAS 单点登录；若需重新认证且用户保存了统一认证密码，则按 CAS 的 `checkInitParams`（`vercode`）、`LOGIN_FLAVORING`、AES/ECB/PKCS7 与表单字段契约登录。密码仅提交到官方 HTTPS CAS 地址。验证码或认证拒绝会持久暂停该账号的密码自动尝试，修改并保存可重新启用；仍可手动完成官方网页认证。
 - 所有重定向逐跳检查主机、协议和端口。教务业务请求不会自动跳到 CAS；独立续登流程只访问 CAS 与教务官方地址，跨跳转重新创建 GET，不转发密码 POST。403、未知跳转和网络故障不当作凭据失效。退出时取消旧 URLSession 并替换独立 Cookie 存储，防止迟到响应重新带入旧会话。
 - 密码只在“我的 → 账号与密码”中明确保存，使用独立的 `WhenUnlockedThisDeviceOnly` 钥匙串条目，关闭同步，不写入 UserDefaults、缓存、日志或导出文件。管理入口直接打开，无需额外的 Face ID、Touch ID 或设备密码验证。密码不回显，留空修改仅保留同一账号的原密码。非活动时清空密码输入并遮蔽页面；设备解锁时，自动续登可按需读取密码。
 - 账号切换时清空旧账号数据，避免混合。演示/备份恢复也不会成为真实登录状态。
@@ -107,7 +107,7 @@ python3 -m unittest discover -s scripts/tests -p 'test_*.py'
 
 “今天”页在问候卡片下显示校园卡与浴室水费余额。首次点按各自卡片连接账号：校园卡使用学号和慧新易校校园卡查询密码，浴室水费使用呱呱淋浴手机号和密码；这两个会话与教务会话独立。详情页支持刷新、更换账号和断开连接。校园卡将 `db_balance` 与 `unsettle_amount` 相加后由分换算为元，与 Android 端保持一致；淋浴读取 `accountMoney`，由千分之一元换算为元，不合并赠送余额。金额显示两位小数。首页余额卡片不显示上次更新时间，详情页保留最近更新时间；首页仍显示连接、刷新中及错误状态。
 
-余额接口契约来自 `network-api` 的 `HuiXinService`、`GuaGuaService` 及其响应模型。校园卡沿用 `Constant.HUI_XIN_URL` 的 `http://121.251.19.62/`，通过 `POST berserker-auth/oauth/token` 提交 `username`、`password`、`grant_type=password`、`logintype=sno`，携带与 Android 一致的 Basic 客户端认证；随后通过 `GET berserker-app/ykt/tsm/getCampusCards` 与 `synjones-auth: bearer <token>` 查询。此流程不经过 CAS，不使用信息门户密码。仅对这一 IP 添加 ATS HTTP 例外；iOS 17 及以上支持在 [Apple 官方 NSExceptionDomains 配置](https://developer.apple.com/documentation/bundleresources/information-property-list/nsapptransportsecurity/nsexceptiondomains) 中指定单个 IP，应用最低版本为 iOS 26。界面提示使用可信校园网或 VPN。
+余额接口由 `Packages/HFUTCore/Sources/HFUTCore/CampusBalanceClient.swift` 实现。校园卡使用 `http://121.251.19.62/`，通过 `POST berserker-auth/oauth/token` 提交 `username`、`password`、`grant_type=password`、`logintype=sno`，携带 Basic 客户端认证；随后通过 `GET berserker-app/ykt/tsm/getCampusCards` 与 `synjones-auth: bearer <token>` 查询。此流程不经过 CAS，不使用信息门户密码。仅对这一 IP 添加 ATS HTTP 例外；iOS 17 及以上支持在 [Apple 官方 NSExceptionDomains 配置](https://developer.apple.com/documentation/bundleresources/information-property-list/nsapptransportsecurity/nsexceptiondomains) 中指定单个 IP，应用最低版本为 iOS 26。界面提示使用可信校园网或 VPN。
 
 淋浴通过 `https://bathing.hfut.edu.cn/` 请求，密码按上游要求取 MD5 的最后十位大写十六进制字符后提交。余额详情中的临时登录仅保存令牌；在统一账号入口明确保存后，原始密码留在本机钥匙串，登录时按需计算摘要。校园卡查询密码也只在统一入口明确保存；学校接口仍为 HTTP，界面提示使用可信校园网或系统 VPN，不能将钥匙串保护等同于传输加密。登录令牌与最近一次余额存入另一个钥匙串条目，不进入 JSON 备份，退出、切换教务账号、进入演示或导入备份时清除；旧版信息门户校园卡令牌和对应余额会被移除，保留淋浴账号，避免向慧新易校发送其他服务的凭据。
 
@@ -158,6 +158,6 @@ ios/
 
 在 `ios/` 下运行 `xcodegen generate` 可生成 `HFUTSchedule.xcodeproj`，在 macOS 上通过 Xcode 打开。生成的工程不纳入版本控制，修改 target、依赖或构建配置时编辑 `project.yml` 后重新生成。应用目录以 Xcode target 命名，SwiftPM 用显式 `path` 引用同一套源码；`Packages/HFUTCore` 保留标准 Swift Package 的 `Sources` / `Tests` 排布。Info.plist 和资源由各自的打包配置处理，不参与 Swift 源码编译；许可证仍复制到应用包顶层。
 
-`.build/`、`xtool/`、`DerivedData/` 与 `.xcresult` 均为被 Git 忽略的本地产物，不属于源码结构。Android 模块和根目录 Gradle 入口保持原位。
+`.build/`、`xtool/`、`DerivedData/` 与 `.xcresult` 均为被 Git 忽略的本地产物，不属于源码结构。仓库已移除 Android 模块及 Gradle 构建配置；`../docs/` 保留历史资料，不作为当前工程的构建说明。
 
 唯一应用外部依赖为 [SwiftSoup 2.8.8](https://github.com/scinfu/SwiftSoup/tree/2.8.8)，固定版本并提交 `Package.resolved`，用于容错解析教务 HTML。应用与原项目沿用根目录 Apache-2.0 许可；SwiftSoup 使用 MIT 许可。应用无统计上报或第三方业务后端。

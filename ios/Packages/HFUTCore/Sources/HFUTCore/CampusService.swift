@@ -10,7 +10,7 @@ public struct CampusService: Identifiable, Sendable {
     public let requiresCampusNetwork: Bool
     public func url(campus: Campus) -> URL { URL(string: campus == .xuancheng ? xuanchengAddress ?? address : address)! }
 
-    // Addresses mirror network-api/.../model/Constant.kt; services open their official site.
+    // Campus service entries open their official sites.
     public static let all: [CampusService] = [
         .init(id: "portal", title: "信息门户", symbol: "person.crop.rectangle", category: "学习", address: "https://one.hfut.edu.cn/", xuanchengAddress: nil, requiresCampusNetwork: false),
         .init(id: "academic", title: "教务系统", symbol: "graduationcap", category: "学习", address: "http://jxglstu.hfut.edu.cn/eams5-student/", xuanchengAddress: nil, requiresCampusNetwork: true),
